@@ -12,6 +12,7 @@ window.onload = () => {
   // 背景を白にする
   const white: number[] = [1.0, 1.0, 1.0, 1.0];
   gl.clearBufferfv(gl.COLOR, 0, white);
+  gl.viewport(0, 0, N, 1);
 
   // データを用意する
   const index: number[] = [];
@@ -38,9 +39,9 @@ window.onload = () => {
   const M = new Float32Array(m);
 
   // テクスチャの生成
-  function transferData(list: Float32Array,
-                        dimension: number, iformat: number,
-                        format: number, type: number) {
+  function createTexture(list: Float32Array,
+                         dimension: number, iformat: number,
+                         format: number, type: number) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -53,17 +54,16 @@ window.onload = () => {
     return texture;
   }
 
+  const mTex = createTexture(M, 1, gl.R32F, gl.RED, gl.FLOAT);
   const pTex: WebGLTexture[] = [];
   const vTex: WebGLTexture[] = [];
   const aTex: WebGLTexture[] = [];
-  const mTex: WebGLTexture[] = [];
-  pTex[0] = transferData(P, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-  vTex[0] = transferData(V, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-  aTex[0] = transferData(A, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-  mTex[0] = transferData(M, 1, gl.R32F, gl.RED, gl.FLOAT);
-  pTex[1] = transferData(P, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-  vTex[1] = transferData(V, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-  aTex[1] = transferData(A, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+  pTex[0] = createTexture(P, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+  vTex[0] = createTexture(V, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+  aTex[0] = createTexture(A, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+  pTex[1] = createTexture(P, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+  vTex[1] = createTexture(V, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+  aTex[1] = createTexture(A, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
 
   // シェーダプログラムの設定
   function getShader(type: number, source: string) {
@@ -84,17 +84,13 @@ window.onload = () => {
   gl.linkProgram(program);
   gl.useProgram(program);
 
-  // これ何？
-  let n = 0;
-  let step = 0;
-  const maxStep = 1000;
-
   // 実行開始!
-  swap();
+  let count = 0;
+  step();
 
-  function swap() {
+  function step() {
     // ステップ数確認
-    if (step++ >= maxStep) {
+    if (++count > 1000) {
       showResult();
       return;
     }
@@ -116,25 +112,25 @@ window.onload = () => {
     // テクスチャをレンダーターゲットに指定
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D, pTex[(n % 2) ? 0 : 1], 0);
+      gl.TEXTURE_2D, pTex[1], 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1,
-      gl.TEXTURE_2D, vTex[(n % 2) ? 0 : 1], 0);
+      gl.TEXTURE_2D, vTex[1], 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2,
-      gl.TEXTURE_2D, aTex[(n % 2) ? 0 : 1], 0);
+      gl.TEXTURE_2D, aTex[1], 0);
     gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1,
     gl.COLOR_ATTACHMENT2]);
 
     // uniform変数とテクスチャを関連付ける
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, pTex[(n % 2) ? 1 : 0]);
+    gl.bindTexture(gl.TEXTURE_2D, pTex[0]);
     gl.uniform1i(gl.getUniformLocation(program, 'p'), 0);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, vTex[(n % 2) ? 1 : 0]);
+    gl.bindTexture(gl.TEXTURE_2D, vTex[0]);
     gl.uniform1i(gl.getUniformLocation(program, 'v'), 1);
 
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, aTex[(n % 2) ? 1 : 0]);
+    gl.bindTexture(gl.TEXTURE_2D, aTex[0]);
     gl.uniform1i(gl.getUniformLocation(program, 'a'), 2);
 
     gl.activeTexture(gl.TEXTURE3);
@@ -142,19 +138,16 @@ window.onload = () => {
     gl.uniform1i(gl.getUniformLocation(program, 'm'), 3);
 
     gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, pTex[(n % 2) ? 1 : 0]);
+    gl.bindTexture(gl.TEXTURE_2D, pTex[0]);
     gl.uniform1i(gl.getUniformLocation(program, 'global_p'), 4);
 
-    // 描画命令
-    gl.viewport(0, 0, N, 1);
+    // 描画処理
     gl.drawArrays(gl.POINTS, 0, N);
 
-    if (n === 0) {
-      n = 1;
-    } else {
-      n = 0;
-    }
-    requestAnimationFrame(swap);
+    pTex.reverse();
+    vTex.reverse();
+    aTex.reverse();
+    requestAnimationFrame(step);
   }
 
   // 結果表示用
