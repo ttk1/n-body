@@ -1,5 +1,7 @@
 window.onload = () => {
   const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  canvas.width = 500;
+  canvas.height = 500;
   const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
 
   // floatのテクスチャを有効にする
@@ -7,7 +9,7 @@ window.onload = () => {
   gl.getExtension('EXT_color_buffer_float');
 
   // 定数 <- 何？
-  const N = 512;
+  const N = 10;
 
   // 背景を白にする
   const white: number[] = [1.0, 1.0, 1.0, 1.0];
@@ -79,20 +81,23 @@ window.onload = () => {
   const fragmentShader = getShader(gl.FRAGMENT_SHADER, require('./glsl/frag.glsl').default);
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
-  gl.useProgram(program);
+
+  const program2 = gl.createProgram();
+  const vertexShader2 = getShader(gl.VERTEX_SHADER, require('./glsl/vert2.glsl').default);
+  gl.attachShader(program2, vertexShader2);
+  const fragmentShader2 = getShader(gl.FRAGMENT_SHADER, require('./glsl/frag2.glsl').default);
+  gl.attachShader(program2, fragmentShader2);
+  gl.linkProgram(program2);
 
   // 実行開始!
   let count = 0;
   step();
 
   function step() {
-    // ステップ数確認
-    if (++count > 1000) {
-      showResult();
-      return;
-    }
 
     // フレームバッファをバインドする
+    gl.useProgram(program);
+    gl.viewport(0, 0, N, 1);
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
@@ -130,6 +135,24 @@ window.onload = () => {
     pTex.reverse();
     vTex.reverse();
     aTex.reverse();
+
+    // ステップ数確認
+    if (++count > 10) {
+      // showResult();
+      return;
+    }
+    showResult();
+
+    gl.useProgram(program2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, 500, 500);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, pTex[0]);
+    gl.uniform1i(gl.getUniformLocation(program2, 'p'), 0);
+    gl.drawArrays(gl.POINTS, 0, N);
+
     requestAnimationFrame(step);
   }
 

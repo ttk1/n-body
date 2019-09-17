@@ -17,8 +17,8 @@ void main() {
   vec4 old_p = texelFetch(p, ivec2(gl_FragCoord.x, 0), 0);
   vec4 old_v = texelFetch(v, ivec2(gl_FragCoord.x, 0), 0);
   vec4 old_a = texelFetch(a, ivec2(gl_FragCoord.x, 0), 0);
-	int size = textureSize(m, 0).x;
-	vec3 force = vec3(0.0, 0.0, 0.0);
+  int size = textureSize(m, 0).x;
+  vec3 force = vec3(0.0, 0.0, 0.0);
 
 	// 万有引力計算
 	for (int i = 0; i < size; i++) {
@@ -36,6 +36,7 @@ void main() {
 	// リープフロッグ法で値を更新
 	vec4 middle = old_v + vec4(TIME_STEP / 2.0) * old_a;
 	new_a = vec4(force, 0.0);
-	new_p = old_p + TIME_STEP * middle;
+	//new_p = old_p + TIME_STEP * middle;
+  new_p = vec4(1.0);
 	new_v = old_v + vec4(TIME_STEP / 2.0) * (old_a + vec4(force, 0.0));
 }
