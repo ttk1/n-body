@@ -20,23 +20,22 @@ void main() {
   int size = textureSize(m, 0).x;
   vec3 force = vec3(0.0, 0.0, 0.0);
 
-	// 万有引力計算
-	for (int i = 0; i < size; i++) {
-		if (i == int(gl_FragCoord.x)) {
-			continue;
-		}
-		vec4 pos = texelFetch(p, ivec2(i, 0), 0);
-		float mass = texelFetch(m, ivec2(i, 0), 0).x;
-		vec3 relative = vec3(pos - old_p);
-		float norm = length(relative);
-		float invnorm = 1.0 / pow(norm, 3.0);
-		force += G * mass * invnorm * relative;
-	}
+  // 万有引力計算
+  for (int i = 0; i < size; i++) {
+    if (i == int(gl_FragCoord.x)) {
+      continue;
+    }
+    vec4 pos = texelFetch(p, ivec2(i, 0), 0);
+    float mass = texelFetch(m, ivec2(i, 0), 0).x;
+    vec3 relative = vec3(pos.xyz - old_p.xyz);
+    float norm = length(relative);
+    float invnorm = 1.0 / pow(norm, 3.0);
+    force += G * mass * invnorm * relative;
+  }
 
-	// リープフロッグ法で値を更新
-	vec4 middle = old_v + vec4(TIME_STEP / 2.0) * old_a;
-	new_a = vec4(force, 0.0);
-	//new_p = old_p + TIME_STEP * middle;
-  new_p = vec4(1.0);
-	new_v = old_v + vec4(TIME_STEP / 2.0) * (old_a + vec4(force, 0.0));
+  // リープフロッグ法で値を更新
+  vec4 middle = old_v + vec4(TIME_STEP / 2.0) * old_a;
+  new_a = vec4(force, 0.0);
+  new_p = old_p + TIME_STEP * middle;
+  new_v = old_v + vec4(TIME_STEP / 2.0) * (old_a + vec4(force, 0.0));
 }
