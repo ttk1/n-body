@@ -15,13 +15,11 @@ window.onload = () => {
   gl.viewport(0, 0, N, 1);
 
   // データを用意する
-  const index: number[] = [];
   const p: number[] = [];
   const v: number[] = [];
   const a: number[] = [];
   const m: number[] = [];
   for (let i = 0; i < N; i++) {
-    index.push(i);
     p.push(2 * Math.random() - 1);
     p.push(2 * Math.random() - 1);
     p.push(0.0);
@@ -32,7 +30,6 @@ window.onload = () => {
     }
     m.push(1.0e+2);
   }
-  const I = new Float32Array(index);
   const P = new Float32Array(p);
   const V = new Float32Array(v);
   const A = new Float32Array(a);
@@ -94,16 +91,6 @@ window.onload = () => {
       showResult();
       return;
     }
-
-    // in変数をVBOと関連付ける
-    // indexBufferはIBOと被るからやめたい
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, I, gl.STATIC_DRAW);
-    const loc = gl.getAttribLocation(program, 'index');
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 1, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     // フレームバッファをバインドする
     const fb = gl.createFramebuffer();
