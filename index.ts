@@ -6,8 +6,8 @@ window.onload = () => {
   gl.getExtension('OES_texture_float_linear');
   gl.getExtension('EXT_color_buffer_float');
 
-  // 定数 <- 何？
-  const N = 512;
+  // 質点数
+  const N = 10;
 
   // 背景を白にする
   const white: number[] = [1.0, 1.0, 1.0, 1.0];
@@ -29,6 +29,9 @@ window.onload = () => {
       a.push(0);
     }
     m.push(1.0e+2);
+    m.push(0.0);
+    m.push(0.0);
+    m.push(0.0);
   }
   const P = new Float32Array(p);
   const V = new Float32Array(v);
@@ -46,12 +49,12 @@ window.onload = () => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(gl.TEXTURE_2D, 0, iformat, list.length / dimension, 1, 0,
-                  format, type, list);
+      format, type, list);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
   }
 
-  const mTex = createTexture(M, 1, gl.R32F, gl.RED, gl.FLOAT);
+  const mTex = createTexture(M, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT);
   const pTex: WebGLTexture[] = [];
   const vTex: WebGLTexture[] = [];
   const aTex: WebGLTexture[] = [];
@@ -81,23 +84,19 @@ window.onload = () => {
   gl.linkProgram(program);
   gl.useProgram(program);
 
+  // uniform変数に質点数を設定
+  const nLoc = gl.getUniformLocation(program, 'N');
+  gl.uniform1f(nLoc, N);
+
+  // フレームバッファをバインドする
+  const fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
   // 実行開始!
-  let count = 0;
   step();
 
   function step() {
-    // ステップ数確認
-    if (++count > 1000) {
-      showResult();
-      return;
-    }
-
-    // フレームバッファをバインドする
-    const fb = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-
     // テクスチャをレンダーターゲットに指定
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
       gl.TEXTURE_2D, pTex[1], 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1,
@@ -121,7 +120,7 @@ window.onload = () => {
     gl.uniform1i(gl.getUniformLocation(program, 'a'), 2);
 
     gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, mTex[0]);
+    gl.bindTexture(gl.TEXTURE_2D, mTex);
     gl.uniform1i(gl.getUniformLocation(program, 'm'), 3);
 
     // 描画処理
@@ -130,7 +129,8 @@ window.onload = () => {
     pTex.reverse();
     vTex.reverse();
     aTex.reverse();
-    requestAnimationFrame(step);
+    showResult();
+    setTimeout(step, 100);
   }
 
   // 結果表示用
