@@ -124,10 +124,6 @@ window.onload = () => {
     gl.bindTexture(gl.TEXTURE_2D, mTex[0]);
     gl.uniform1i(gl.getUniformLocation(program, 'm'), 3);
 
-    gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, pTex[0]);
-    gl.uniform1i(gl.getUniformLocation(program, 'global_p'), 4);
-
     // 描画処理
     gl.drawArrays(gl.POINTS, 0, N);
 
