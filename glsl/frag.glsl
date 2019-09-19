@@ -11,7 +11,7 @@ layout(location = 1) out vec4 new_v;
 layout(location = 2) out vec4 new_a;
 
 const float G = 6.67408e-11;
-const float TIME_STEP = 1.0;
+const float TIME_STEP = 0.5;
 
 void main() {
   vec4 old_p = texelFetch(p, ivec2(gl_FragCoord.x, 0), 0);
@@ -29,8 +29,11 @@ void main() {
     float mass = texelFetch(m, ivec2(i, 0), 0).x;
     vec3 relative = vec3(pos.xyz - old_p.xyz);
     float norm = length(relative);
-    float invnorm = 1.0 / pow(norm, 3.0);
-    force += G * mass * invnorm * relative;
+    // 近すぎる時に、強烈に加速するのを防止する
+    if (norm > 0.01) {
+      float invnorm = 1.0 / pow(norm, 3.0);
+      force += G * mass * invnorm * relative;
+    }
   }
 
   // リープフロッグ法で値を更新

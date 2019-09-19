@@ -9,7 +9,7 @@ window.onload = () => {
   gl.getExtension('EXT_color_buffer_float');
 
   // 質点数
-  const N = 10;
+  const N = 512;
 
   // 背景を白にする
   const white: number[] = [1.0, 1.0, 1.0, 1.0];
@@ -78,6 +78,7 @@ window.onload = () => {
     return shader;
   }
 
+  // 計算用のシェーダ
   const program = gl.createProgram();
   const vertexShader = getShader(gl.VERTEX_SHADER, require('./glsl/vert.glsl').default);
   gl.attachShader(program, vertexShader);
@@ -85,6 +86,7 @@ window.onload = () => {
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
 
+  // 描画用のシェーダ
   const program2 = gl.createProgram();
   const vertexShader2 = getShader(gl.VERTEX_SHADER, require('./glsl/vert2.glsl').default);
   gl.attachShader(program2, vertexShader2);
@@ -138,11 +140,12 @@ window.onload = () => {
     // 描画処理
     gl.drawArrays(gl.POINTS, 0, N);
 
+    // テクスチャの入れ替え
     pTex.reverse();
     vTex.reverse();
     aTex.reverse();
 
-    //showResult();
+    // showResult();
 
     gl.useProgram(program2);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -154,7 +157,7 @@ window.onload = () => {
     gl.uniform1i(gl.getUniformLocation(program2, 'p'), 0);
     gl.drawArrays(gl.POINTS, 0, N);
 
-    setTimeout(step, 10);
+    setTimeout(step, 5);
   }
 
   // 結果表示用
