@@ -36,9 +36,9 @@ void main() {
     }
   }
 
-  // リープフロッグ法で値を更新
-  vec4 middle = old_v + vec4(TIME_STEP / 2.0) * old_a;
+  // リープフロッグ法で質点の情報を更新
+  vec4 middle = old_v + (TIME_STEP / 2.0) * old_a;
   new_a = vec4(force, 0.0);
   new_p = old_p + TIME_STEP * middle;
-  new_v = old_v + vec4(TIME_STEP / 2.0) * (old_a + vec4(force, 0.0));
+  new_v = old_v + (TIME_STEP / 2.0) * (old_a + new_a);
 }
