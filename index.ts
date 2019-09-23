@@ -11,11 +11,6 @@ window.onload = () => {
   // 質点数
   const N = 512;
 
-  // 背景を白にする
-  const white: number[] = [1.0, 1.0, 1.0, 1.0];
-  gl.clearBufferfv(gl.COLOR, 0, white);
-  gl.viewport(0, 0, N, 1);
-
   // データを用意する
   const p: number[] = [];
   const v: number[] = [];
@@ -145,6 +140,7 @@ window.onload = () => {
     vTex.reverse();
     aTex.reverse();
 
+    // 結果を表示したい場合、下のコメントアウトを外す
     // showResult();
 
     gl.useProgram(program2);
