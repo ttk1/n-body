@@ -9,7 +9,7 @@ window.onload = () => {
   gl.getExtension('EXT_color_buffer_float');
 
   // 質点数
-  const N = 512;
+  const N = 1024;
 
   // データを用意する
   const p: number[] = [];
